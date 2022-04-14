@@ -1,36 +1,33 @@
 package bloomfilter
 
 import (
-	"github.com/hoangtq219/murmur3"
+	"github.com/twmb/murmur3"
 )
 
-type Bloomfilter struct {
-	bit_array []bool
-	size      int
+// SimpleBloomFilter is a filter that uses only a single murmur3 hash function.
+type SimpleBloomfilter struct {
+	Bit_array []bool
+	Size      int
 }
 
-func (bf Bloomfilter) New(arr_size int) Bloomfilter {
-	var arr []bool
-	return Bloomfilter{
-		bit_array: arr,
-		size:      arr_size,
+func NewSimpleBloomfilter(size int) SimpleBloomfilter {
+	arr := make([]bool, size)
+	return SimpleBloomfilter{
+		Bit_array: arr,
+		Size:      size,
 	}
 }
 
-func (bf *Bloomfilter) Check(s string) bool {
+func (bf *SimpleBloomfilter) Check(s string) bool {
 	h := bf.Hash(s)
-	return bf.bit_array[h]
+	return bf.Bit_array[h]
 }
 
-func (bf *Bloomfilter) Insert(s string) {
+func (bf *SimpleBloomfilter) Insert(s string) {
 	h := bf.Hash(s)
-	bf.bit_array[h] = true
+	bf.Bit_array[h] = true
 }
 
-func (bf *Bloomfilter) Hash(s string) int {
-	// TODO: change seed to something variable?
-	// TODO: perhaps not the hashing function to use
-	// or at least need to think about how to make the hash non negative without clashing much
-	// TLDR; more research needed
-	return murmur3.HashString(-1, s).AsInt() % bf.size
+func (bf *SimpleBloomfilter) Hash(s string) uint32 {
+	return murmur3.Sum32([]byte(s)) % uint32(bf.Size)
 }
